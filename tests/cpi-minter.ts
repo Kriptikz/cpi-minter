@@ -83,5 +83,5 @@ describe('cpi-minter', () => {
     console.log("TokenAccountA balance: ", amount);
 
     assert.ok(initializerAmount, amount);
-  })
+  });
 });
