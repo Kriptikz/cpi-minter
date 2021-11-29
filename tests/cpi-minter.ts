@@ -32,16 +32,56 @@ describe('cpi-minter', () => {
   it('Airdrop SOL to payer!', async () => {
     console.log("Airdropping SOL");
 
-    // Airdrop tokens to a payer.
+    // Airdrop tokens to a payer
     await provider.connection.confirmTransaction(
       await provider.connection.requestAirdrop(payer.publicKey, airdropAmount),
       "confirmed"
     );
 
+    // Get the new balance
     let balance = await provider.connection.getBalance(payer.publicKey);
 
     console.log("Balance: ", balance);
 
     assert.ok(airdropAmount == balance);
   });
+
+  it('Mints a new token!', async() => {
+    // Airdrop tokens to a payer
+    await provider.connection.confirmTransaction(
+      await provider.connection.requestAirdrop(payer.publicKey, airdropAmount),
+      "confirmed"
+    );
+
+    // Create our mint
+    mintA = await Token.createMint(
+      provider.connection,
+      payer,
+      mintAuthority.publicKey,
+      null,
+      0,
+      TOKEN_PROGRAM_ID
+    );
+
+    // Create our mint account for the initializer
+    initializerTokenAccountA = await mintA.createAccount(initializerMainAccount.publicKey);
+
+    // Mint our tokens to our initilizerTokenAccountA
+    await mintA.mintTo(
+      initializerTokenAccountA,
+      mintAuthority.publicKey,
+      [mintAuthority],
+      initializerAmount
+    );
+
+    // Get our intitializerTokenAccountA info
+    let _initializerTokenAccountA = await mintA.getAccountInfo(initializerTokenAccountA);
+    
+    // Get the amount of tokens in initializerTokenAccountA
+    let amount = _initializerTokenAccountA.amount.toNumber();
+
+    console.log("TokenAccountA balance: ", amount);
+
+    assert.ok(initializerAmount, amount);
+  })
 });
