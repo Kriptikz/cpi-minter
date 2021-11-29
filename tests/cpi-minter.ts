@@ -1,0 +1,47 @@
+import * as anchor from '@project-serum/anchor';
+import { Program } from '@project-serum/anchor';
+import { CpiMinter } from '../target/types/cpi_minter';
+import { PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
+import { TOKEN_PROGRAM_ID, Token } from "@solana/spl-token";
+import { assert } from "chai";
+
+describe('cpi-minter', () => {
+
+  // Configure the client to use the local cluster.
+  const provider = anchor.Provider.env();
+  anchor.setProvider(anchor.Provider.env());
+
+  const program = anchor.workspace.CpiMinter as Program<CpiMinter>;
+
+  let mintA = null;
+  let initializerTokenAccountA = null;
+
+  const airdropAmount = 10000000000;
+  const initializerAmount = 100;
+
+  const mintAuthority = anchor.web3.Keypair.generate();
+  const payer = anchor.web3.Keypair.generate();
+  const initializerMainAccount = anchor.web3.Keypair.generate();
+
+  it('Is initialized!', async () => {
+    // Add your test here.
+    const tx = await program.rpc.initialize({});
+    console.log("Your transaction signature", tx);
+  });
+
+  it('Airdrop SOL to payer!', async () => {
+    console.log("Airdropping SOL");
+
+    // Airdrop tokens to a payer.
+    await provider.connection.confirmTransaction(
+      await provider.connection.requestAirdrop(payer.publicKey, airdropAmount),
+      "confirmed"
+    );
+
+    let balance = await provider.connection.getBalance(payer.publicKey);
+
+    console.log("Balance: ", balance);
+
+    assert.ok(airdropAmount == balance);
+  });
+});
