@@ -29,7 +29,7 @@ describe('cpi-minter', () => {
     console.log("Your transaction signature", tx);
   });
 
-  it('Airdrop SOL to payer!', async () => {
+  it('Airdrop SOL to payer using ts!', async () => {
     console.log("Airdropping SOL");
 
     // Airdrop tokens to a payer
@@ -46,7 +46,7 @@ describe('cpi-minter', () => {
     assert.ok(airdropAmount == balance);
   });
 
-  it('Mints a new token!', async() => {
+  it('Mints a new token using ts!', async() => {
     // Airdrop tokens to a payer
     await provider.connection.confirmTransaction(
       await provider.connection.requestAirdrop(payer.publicKey, airdropAmount),
