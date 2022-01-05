@@ -12,13 +12,14 @@ describe('cpi-minter', () => {
   anchor.setProvider(anchor.Provider.env());
 
   const program = anchor.workspace.CpiMinter as Program<CpiMinter>;
-
+  
   let mintA = null;
   let initializerTokenAccountA = null;
 
   const airdropAmount = 10000000000;
   const initializerAmount = 100;
 
+  
   const mintAuthority = anchor.web3.Keypair.generate();
   const payer = anchor.web3.Keypair.generate();
   const initializerMainAccount = anchor.web3.Keypair.generate();
@@ -47,12 +48,6 @@ describe('cpi-minter', () => {
   });
 
   it('Mints a new token using ts!', async() => {
-    // Airdrop tokens to a payer
-    await provider.connection.confirmTransaction(
-      await provider.connection.requestAirdrop(payer.publicKey, airdropAmount),
-      "confirmed"
-    );
-
     // Create our mint
     mintA = await Token.createMint(
       provider.connection,
@@ -82,6 +77,35 @@ describe('cpi-minter', () => {
 
     console.log("TokenAccountA balance: ", amount);
 
-    assert.ok(initializerAmount, amount);
+    assert.equal(initializerAmount, amount);
   });
+
+  it('Mints a new token to an account!', async () => {
+
+    console.log("Minting more tokens to TokenAccountA");
+
+    // Mint our new mint to the new initializer account
+    const tx = await program.rpc.minter({
+      accounts: {
+        initializerTokenAccount: initializerTokenAccountA,
+        authority: mintAuthority.publicKey,
+        mint: mintA.publicKey,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      },
+      signers: [mintAuthority]
+    })
+
+    // Get our intitializerTokenAccountA info
+    let _initializerTokenAccountA = await mintA.getAccountInfo(initializerTokenAccountA);
+
+    // Get the amount of tokens in initializerTokenAccountA
+    let amount = _initializerTokenAccountA.amount.toNumber();
+
+    console.log("TokenAccountA balance: ", amount);
+
+    assert.equal(initializerAmount + 100, amount);
+
+  });
+
 });
